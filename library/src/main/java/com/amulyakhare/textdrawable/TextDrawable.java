@@ -1,6 +1,13 @@
 package com.amulyakhare.textdrawable;
 
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.graphics.drawable.shapes.RectShape;
@@ -12,18 +19,61 @@ import android.graphics.drawable.shapes.RoundRectShape;
  */
 public class TextDrawable extends ShapeDrawable {
 
+    /**
+     * Text paint.
+     */
     private final Paint textPaint;
+    /**
+     * Border paint.
+     */
     private final Paint borderPaint;
+    /**
+     * The constant SHADE_FACTOR.
+     */
     private static final float SHADE_FACTOR = 0.9f;
+    /**
+     * Text.
+     */
     private final String text;
+    /**
+     * Color.
+     */
     private final int color;
+    /**
+     * Shape.
+     */
     private final RectShape shape;
+    /**
+     * Height.
+     */
     private final int height;
+    /**
+     * Width.
+     */
     private final int width;
+    /**
+     * Font size.
+     */
     private final int fontSize;
+    /**
+     * Radius.
+     */
     private final float radius;
+    /**
+     * Border thickness.
+     */
     private final int borderThickness;
+    /**
+     * String color.
+     */
+    private String stringColor;
 
+    /**
+     * Instantiates a new Text drawable.
+     *
+     * @param builder
+     *         the builder
+     */
     private TextDrawable(Builder builder) {
         super(builder.shape);
 
@@ -36,6 +86,7 @@ public class TextDrawable extends ShapeDrawable {
         // text and color
         text = builder.toUpperCase ? builder.text.toUpperCase() : builder.text;
         color = builder.color;
+        stringColor = builder.stringColor;
 
         // text paint settings
         fontSize = builder.fontSize;
@@ -57,14 +108,24 @@ public class TextDrawable extends ShapeDrawable {
 
         // drawable paint color
         Paint paint = getPaint();
-        paint.setColor(color);
-
+        if (stringColor != null) {
+            paint.setColor(Color.parseColor(stringColor));
+        } else {
+            paint.setColor(color);
+        }
     }
 
+    /**
+     * Gets darker shade.
+     *
+     * @param color
+     *         color
+     * @return darker shade
+     */
     private int getDarkerShade(int color) {
-        return Color.rgb((int)(SHADE_FACTOR * Color.red(color)),
-                (int)(SHADE_FACTOR * Color.green(color)),
-                (int)(SHADE_FACTOR * Color.blue(color)));
+        return Color.rgb((int) (SHADE_FACTOR * Color.red(color)),
+                (int) (SHADE_FACTOR * Color.green(color)),
+                (int) (SHADE_FACTOR * Color.blue(color)));
     }
 
     @Override
@@ -94,15 +155,13 @@ public class TextDrawable extends ShapeDrawable {
 
     private void drawBorder(Canvas canvas) {
         RectF rect = new RectF(getBounds());
-        rect.inset(borderThickness/2, borderThickness/2);
+        rect.inset(borderThickness / 2, borderThickness / 2);
 
         if (shape instanceof OvalShape) {
             canvas.drawOval(rect, borderPaint);
-        }
-        else if (shape instanceof RoundRectShape) {
+        } else if (shape instanceof RoundRectShape) {
             canvas.drawRoundRect(rect, radius, radius, borderPaint);
-        }
-        else {
+        } else {
             canvas.drawRect(rect, borderPaint);
         }
     }
@@ -162,6 +221,8 @@ public class TextDrawable extends ShapeDrawable {
 
         public float radius;
 
+        private String stringColor;
+
         private Builder() {
             text = "";
             color = Color.GRAY;
@@ -175,6 +236,7 @@ public class TextDrawable extends ShapeDrawable {
             isBold = false;
             toUpperCase = false;
         }
+
 
         public IConfigBuilder width(int width) {
             this.width = width;
@@ -270,47 +332,183 @@ public class TextDrawable extends ShapeDrawable {
             this.text = text;
             return new TextDrawable(this);
         }
+
+        @Override
+        public TextDrawable build(String text, String color) {
+            this.stringColor = color;
+            this.text = text;
+            return new TextDrawable(this);
+        }
     }
 
     public interface IConfigBuilder {
+
+        /**
+         * Width i config builder.
+         *
+         * @param width
+         *         width
+         * @return the i config builder
+         */
         public IConfigBuilder width(int width);
 
+        /**
+         * Height i config builder.
+         *
+         * @param height
+         *         height
+         * @return the i config builder
+         */
         public IConfigBuilder height(int height);
 
+        /**
+         * Text color.
+         *
+         * @param color
+         *         color
+         * @return the i config builder
+         */
         public IConfigBuilder textColor(int color);
 
+        /**
+         * With border.
+         *
+         * @param thickness
+         *         thickness
+         * @return the i config builder
+         */
         public IConfigBuilder withBorder(int thickness);
 
+        /**
+         * Use font.
+         *
+         * @param font
+         *         font
+         * @return the i config builder
+         */
         public IConfigBuilder useFont(Typeface font);
 
+        /**
+         * Font size.
+         *
+         * @param size
+         *         size
+         * @return the i config builder
+         */
         public IConfigBuilder fontSize(int size);
 
+        /**
+         * Bold i config builder.
+         *
+         * @return the i config builder
+         */
         public IConfigBuilder bold();
 
+        /**
+         * To upper case.
+         *
+         * @return the i config builder
+         */
         public IConfigBuilder toUpperCase();
 
+        /**
+         * End config.
+         *
+         * @return the i shape builder
+         */
         public IShapeBuilder endConfig();
     }
 
     public static interface IBuilder {
 
+        /**
+         * Build text drawable.
+         *
+         * @param text
+         *         text
+         * @param color
+         *         color
+         * @return the text drawable
+         */
         public TextDrawable build(String text, int color);
+
+        /**
+         * Build text drawable.
+         *
+         * @param text
+         *         text
+         * @param color
+         *         color
+         * @return the text drawable
+         */
+        public TextDrawable build(String text, String color);
     }
 
     public static interface IShapeBuilder {
 
+        /**
+         * Begin config.
+         *
+         * @return the i config builder
+         */
         public IConfigBuilder beginConfig();
 
+        /**
+         * Rect i builder.
+         *
+         * @return the i builder
+         */
         public IBuilder rect();
 
+        /**
+         * Round i builder.
+         *
+         * @return the i builder
+         */
         public IBuilder round();
 
+        /**
+         * Round rect.
+         *
+         * @param radius
+         *         radius
+         * @return the i builder
+         */
         public IBuilder roundRect(int radius);
 
+        /**
+         * Build rect.
+         *
+         * @param text
+         *         text
+         * @param color
+         *         color
+         * @return the text drawable
+         */
         public TextDrawable buildRect(String text, int color);
 
+        /**
+         * Build round rect.
+         *
+         * @param text
+         *         text
+         * @param color
+         *         color
+         * @param radius
+         *         radius
+         * @return the text drawable
+         */
         public TextDrawable buildRoundRect(String text, int color, int radius);
 
+        /**
+         * Build round.
+         *
+         * @param text
+         *         text
+         * @param color
+         *         color
+         * @return the text drawable
+         */
         public TextDrawable buildRound(String text, int color);
     }
 }
